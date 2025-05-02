@@ -9,6 +9,11 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.7.10"
+    "astro": "^5.7.10",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3"
+  },
+  "devDependencies": {
+    "@astrojs/sitemap": "^3.3.1"
   }
 }
