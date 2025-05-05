@@ -1,12 +1,4 @@
-interface VPComponents {
-  wonder: number;
-  treasure: number;
-  military: number;
-  blueCards: number;
-  yellowCards: number;
-  greenCards: number;
-  purpleCards: number;
-}
+import type { VPComponents } from "../types";
 
 export default class Player {
   name: string;
