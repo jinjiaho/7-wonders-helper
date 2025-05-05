@@ -18,7 +18,7 @@ export const TALLY_COMPONENTS: TallyProps[] = [
     name: "Military Conflicts",
     key: "military",
     description:
-      "Each player adds their Victory and Defeat tokens (this total can be negative !).",
+      "Each player adds their Victory and Defeat tokens (this total can be negative!).",
     note: "Example : Alexandria has fi nished the game with the following tokens: +1, +3, +5, -1, -1, -1 for a total of 6 points.",
   },
   {

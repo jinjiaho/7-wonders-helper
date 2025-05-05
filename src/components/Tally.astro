@@ -66,10 +66,17 @@ import { PLAYER_CHAR_LIMITS } from "../config";
       color: red;
     }
   }
+
+  #next {
+    align-self: stretch;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+  }
 </style>
 <seven-wonders-tally id="tally-component">
   <header id="step-header">
-    <h2 id="step-title">Add Players</h2>
+    <h2 id="step-title">Step 1: Add Players</h2>
     <p id="step-instructions">Up to 10 chars, letters or numbers, no spaces</p>
   </header>
 
@@ -87,6 +94,7 @@ import { PLAYER_CHAR_LIMITS } from "../config";
     <button type="submit">Add Player</button>
     <span class="error"></span>
   </form>
+  <button role="button" id="next" disabled>Next step</button>
 </seven-wonders-tally>
 <script>
   import Player from "../classes/Player";
@@ -96,12 +104,17 @@ import { PLAYER_CHAR_LIMITS } from "../config";
     constructor() {
       super();
       let players: { [key: string]: Player } = {};
-      const playersDiv = this.querySelector("#players") as HTMLElement;
+      let step = 0;
       const colors = [...PLAYER_COLORS];
+      const playersDiv = this.querySelector("#players") as HTMLElement;
+      const nextStepBtn = this.querySelector("#next") as HTMLButtonElement;
+      const header = this.querySelector("#step-header") as HTMLElement;
 
       const addPlayerForm = this.querySelector(
         "#add-player-form",
       ) as HTMLFormElement;
+
+      nextStepBtn.addEventListener("click", nextStep);
 
       addPlayerForm.addEventListener("submit", function (e) {
         e.preventDefault();
@@ -139,7 +152,11 @@ import { PLAYER_CHAR_LIMITS } from "../config";
         playerCard.appendChild(playerName);
         playerCard.appendChild(playerScore);
         playersDiv.appendChild(playerCard);
+
         playersDiv.classList.remove("hide");
+        if (Object.keys(players).length > 2) {
+          enableNextStep();
+        }
       }
 
       function getRandomPlayerColor() {
@@ -147,6 +164,22 @@ import { PLAYER_CHAR_LIMITS } from "../config";
         const color = colors[randomIndex];
         colors.splice(randomIndex, 1);
         return color;
+      }
+
+      function enableNextStep() {
+        nextStepBtn.removeAttribute("disabled");
+      }
+
+      function nextStep() {
+        const tallyComp = TALLY_COMPONENTS[step];
+        const titleEl = header.querySelector("#step-title") as HTMLElement;
+        titleEl.textContent = `Step ${step + 2}: ${tallyComp.name}`;
+        const instructionEl = header.querySelector(
+          "#step-instructions",
+        ) as HTMLElement;
+        instructionEl.textContent = tallyComp.description;
+        step += 1;
+        nextStepBtn.setAttribute("disabled", "true");
       }
     }
   }
