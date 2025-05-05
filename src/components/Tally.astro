@@ -10,12 +10,16 @@ import { PLAYER_CHAR_LIMITS } from "../config";
     max-width: 40rem;
 
     & header {
-      gap: 0;
+      gap: 0.5rem;
 
       & * {
-        margin: 0.25rem;
+        margin: 0;
       }
     }
+  }
+
+  #tally-main {
+    width: 100%;
   }
 
   #players {
@@ -26,10 +30,11 @@ import { PLAYER_CHAR_LIMITS } from "../config";
 
     & .player-card {
       --color: #fe9234;
-      justify-content: space-evenly;
+      justify-content: center;
       height: 4.5rem;
       aspect-ratio: 1;
-      padding: 0.5rem;
+      padding: 1rem;
+      gap: 0.5rem;
       border-radius: 0.5rem;
       text-align: center;
       border: 1px solid var(--color);
@@ -65,6 +70,7 @@ import { PLAYER_CHAR_LIMITS } from "../config";
       flex-basis: 100%;
       flex-shrink: 0;
       color: red;
+      text-align: left;
     }
   }
 
@@ -73,6 +79,10 @@ import { PLAYER_CHAR_LIMITS } from "../config";
     padding: 1rem;
     border-radius: 0.5rem;
     border: 1px solid #ccc;
+
+    &:disabled {
+      opacity: 0.5;
+    }
   }
 </style>
 <seven-wonders-tally id="tally-component">
@@ -81,20 +91,21 @@ import { PLAYER_CHAR_LIMITS } from "../config";
     <p id="step-instructions">Up to 10 chars, letters or numbers, no spaces</p>
   </header>
 
-  <div id="players" class="hide"></div>
-  <form id="add-player-form">
-    <input
-      type="text"
-      id="add-player-name"
-      placeholder="Player name"
-      pattern={`[a-zA-Z0-9]{${PLAYER_CHAR_LIMITS.min},${PLAYER_CHAR_LIMITS.max}}`}
-      maxlength={PLAYER_CHAR_LIMITS.max}
-      autocomplete="false"
-      required
-    />
-    <button type="submit">Add Player</button>
-    <span class="error"></span>
-  </form>
+  <section id="tally-main">
+    <div id="players" class="hide"></div>
+    <form id="add-player-form" class="step-0" autocomplete="off">
+      <input
+        type="text"
+        id="add-player-name"
+        placeholder="Player initials"
+        pattern={`[a-zA-Z0-9]{${PLAYER_CHAR_LIMITS.min},${PLAYER_CHAR_LIMITS.max}}`}
+        maxlength={PLAYER_CHAR_LIMITS.max}
+        required
+      />
+      <button type="submit">Add Player</button>
+      <div class="error hide"></div>
+    </form>
+  </section>
   <button role="button" id="next" disabled>Next step</button>
 </seven-wonders-tally>
 <script>
@@ -110,6 +121,7 @@ import { PLAYER_CHAR_LIMITS } from "../config";
       const playersDiv = this.querySelector("#players") as HTMLElement;
       const nextStepBtn = this.querySelector("#next") as HTMLButtonElement;
       const header = this.querySelector("#step-header") as HTMLElement;
+      const main = this.querySelector("#tally-main") as HTMLElement;
 
       const addPlayerForm = this.querySelector(
         "#add-player-form",
@@ -126,9 +138,11 @@ import { PLAYER_CHAR_LIMITS } from "../config";
         const errEl = addPlayerForm.querySelector(".error") as HTMLSpanElement;
         if (players[playerName]) {
           errEl.textContent = "Player already exists!";
+          errEl.classList.remove("hide");
           return;
         }
         errEl.textContent = "";
+        errEl.classList.add("hide");
 
         createPlayer(playerName);
 
@@ -144,7 +158,7 @@ import { PLAYER_CHAR_LIMITS } from "../config";
         const playerCard = document.createElement("div");
         playerCard.classList.add("player-card");
         playerCard.style.setProperty("--color", getRandomPlayerColor());
-        const playerName = document.createElement("div");
+        const playerName = document.createElement("h4");
         playerName.classList.add("player-name");
         playerName.textContent = name;
         const playerScore = document.createElement("div");
@@ -179,8 +193,16 @@ import { PLAYER_CHAR_LIMITS } from "../config";
           "#step-instructions",
         ) as HTMLElement;
         instructionEl.textContent = tallyComp.description;
+        removeStepItems(step);
         step += 1;
         nextStepBtn.setAttribute("disabled", "true");
+      }
+
+      function removeStepItems(index: number) {
+        const stepItems = Array.from(main.querySelectorAll(`.step-${index}`));
+        for (let item of stepItems) {
+          main.removeChild(item);
+        }
       }
     }
   }
