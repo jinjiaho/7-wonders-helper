@@ -1,0 +1,154 @@
+---
+import { PLAYER_CHAR_LIMITS } from "../config";
+---
+
+<style is:global>
+  #tally-component {
+    text-align: center;
+    width: 100%;
+    row-gap: 1rem;
+
+    & header {
+      gap: 0;
+
+      & * {
+        margin: 0.25rem;
+      }
+    }
+  }
+
+  #players {
+    flex-direction: row;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    & .player-card {
+      --color: #fe9234;
+      justify-content: space-evenly;
+      height: 4rem;
+      aspect-ratio: 1;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      border: 1px solid var(--color);
+      color: var(--color);
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  #add-player-form {
+    border-radius: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    flex-direction: row;
+    column-gap: 0.5rem;
+    flex-wrap: wrap;
+
+    & input,
+    & button {
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+    }
+
+    & button {
+      padding: 0.75rem 1rem;
+    }
+
+    & input {
+      flex-grow: 1;
+    }
+
+    & .error {
+      flex-basis: 100%;
+      flex-shrink: 0;
+      color: red;
+    }
+  }
+</style>
+<seven-wonders-tally id="tally-component">
+  <header id="step-header">
+    <h2 id="step-title">Add Players</h2>
+    <p id="step-instructions">Up to 10 chars, letters or numbers, no spaces</p>
+  </header>
+
+  <div id="players" class="hide"></div>
+  <form id="add-player-form">
+    <input
+      type="text"
+      id="add-player-name"
+      placeholder="Player name"
+      pattern={`[a-zA-Z0-9]{${PLAYER_CHAR_LIMITS.min},${PLAYER_CHAR_LIMITS.max}}`}
+      maxlength={PLAYER_CHAR_LIMITS.max}
+      autocomplete="false"
+      required
+    />
+    <button type="submit">Add Player</button>
+    <span class="error"></span>
+  </form>
+</seven-wonders-tally>
+<script>
+  import Player from "../classes/Player";
+  import { PLAYER_LIMIT, PLAYER_COLORS, TALLY_COMPONENTS } from "../config";
+
+  class SevenWondersTally extends HTMLElement {
+    constructor() {
+      super();
+      let players: { [key: string]: Player } = {};
+      const playersDiv = this.querySelector("#players") as HTMLElement;
+      const colors = [...PLAYER_COLORS];
+
+      const addPlayerForm = this.querySelector(
+        "#add-player-form",
+      ) as HTMLFormElement;
+
+      addPlayerForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const playerName = (
+          addPlayerForm.querySelector("#add-player-name") as HTMLInputElement
+        ).value;
+
+        const errEl = addPlayerForm.querySelector(".error") as HTMLSpanElement;
+        if (players[playerName]) {
+          errEl.textContent = "Player already exists!";
+          return;
+        }
+        errEl.textContent = "";
+
+        createPlayer(playerName);
+
+        if (Object.keys(players).length === PLAYER_LIMIT) {
+          addPlayerForm.classList.add("hide");
+          return;
+        }
+        addPlayerForm.reset();
+      });
+
+      function createPlayer(name: string) {
+        players[name] = new Player(name);
+        const playerCard = document.createElement("div");
+        playerCard.classList.add("player-card");
+        playerCard.style.setProperty("--color", getRandomPlayerColor());
+        const playerName = document.createElement("div");
+        playerName.classList.add("player-name");
+        playerName.textContent = name;
+        const playerScore = document.createElement("div");
+        playerScore.classList.add("player-score");
+        playerScore.textContent = "0";
+        playerCard.appendChild(playerName);
+        playerCard.appendChild(playerScore);
+        playersDiv.appendChild(playerCard);
+        playersDiv.classList.remove("hide");
+      }
+
+      function getRandomPlayerColor() {
+        const randomIndex = Math.floor(Math.random() * colors.length);
+        const color = colors[randomIndex];
+        colors.splice(randomIndex, 1);
+        return color;
+      }
+    }
+  }
+  customElements.define("seven-wonders-tally", SevenWondersTally);
+</script>
