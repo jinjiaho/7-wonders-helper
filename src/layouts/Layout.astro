@@ -43,7 +43,7 @@ const { title } = Astro.props;
       }
 
       body,
-      body * {
+      body *:not(table, thead, tbody, tr, td, th, tfoot, caption, col) {
         display: flex;
         align-items: center;
         flex-direction: column;
@@ -58,7 +58,8 @@ const { title } = Astro.props;
       h3,
       h4,
       h5,
-      h6 {
+      h6,
+      th {
         font-family: "Cinzel", system-ui;
         font-weight: 600;
         font-style: normal;
@@ -71,6 +72,10 @@ const { title } = Astro.props;
 
       .hide {
         display: none !important;
+      }
+
+      button:disabled {
+        opacity: 0.5;
       }
     </style>
     <slot />

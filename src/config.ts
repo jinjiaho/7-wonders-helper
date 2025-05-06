@@ -1,7 +1,7 @@
 import type { TallyProps } from "./types";
 
 export const PLAYER_LIMIT = 7;
-export const PLAYER_CHAR_LIMITS = { min: 1, max: 10 };
+export const PLAYER_CHAR_LIMITS = { min: 1, max: 2 };
 
 export const PLAYER_COLORS = [
   "#6d887e",
