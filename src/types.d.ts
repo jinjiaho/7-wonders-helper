@@ -14,3 +14,10 @@ export type TallyProps = {
   description: string;
   note?: string;
 };
+
+export interface AddPlayerEvent extends Event {
+  detail: {
+    playerName: string;
+    playerColor: string;
+  };
+}

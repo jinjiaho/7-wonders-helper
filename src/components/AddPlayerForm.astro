@@ -1,0 +1,95 @@
+---
+import { PLAYER_CHAR_LIMITS } from "../config";
+const { classes } = Astro.props;
+---
+
+<style>
+  form {
+    border-radius: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    flex-direction: row;
+    column-gap: 0.5rem;
+    flex-wrap: wrap;
+
+    & input,
+    & button {
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+    }
+
+    & button {
+      padding: 0.75rem 1rem;
+    }
+
+    & input {
+      flex-grow: 1;
+    }
+
+    & .error {
+      flex-basis: 100%;
+      flex-shrink: 0;
+      color: red;
+      text-align: left;
+    }
+  }
+</style>
+<add-player-form class={classes}>
+  <form action="#" autocomplete="off">
+    <input
+      type="text"
+      id="add-player-name"
+      placeholder="Player initials"
+      pattern={`[a-zA-Z0-9]{${PLAYER_CHAR_LIMITS.min},${PLAYER_CHAR_LIMITS.max}}`}
+      maxlength={PLAYER_CHAR_LIMITS.max}
+      required
+    />
+    <button type="submit">Add Player</button>
+  </form>
+</add-player-form>
+<script>
+  import Player from "../classes/Player";
+  import { PLAYER_COLORS } from "../config";
+
+  class AddPlayerForm extends HTMLElement {
+    constructor() {
+      super();
+      const form = this.querySelector("form") as HTMLFormElement;
+      const colors = [...PLAYER_COLORS];
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const playerName = (
+          form.querySelector("#add-player-name") as HTMLInputElement
+        ).value;
+        const players = JSON.parse(sessionStorage.getItem("players")!);
+
+        if (players[playerName]) {
+          throw new Error("Player already exists!");
+        }
+
+        players[playerName] = new Player(playerName);
+        sessionStorage.setItem("players", JSON.stringify(players));
+
+        form.dispatchEvent(
+          new CustomEvent("add-player", {
+            detail: { playerName, playerColor: getRandomPlayerColor() },
+            bubbles: true,
+            composed: true,
+          }),
+        );
+
+        form.reset();
+      });
+
+      function getRandomPlayerColor() {
+        const randomIndex = Math.floor(Math.random() * colors.length);
+        const color = colors[randomIndex];
+        colors.splice(randomIndex, 1);
+        return color;
+      }
+    }
+  }
+  customElements.define("add-player-form", AddPlayerForm);
+</script>

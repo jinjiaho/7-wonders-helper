@@ -1,5 +1,5 @@
 ---
-import { PLAYER_CHAR_LIMITS } from "../config";
+import AddPlayerForm from "./AddPlayerForm.astro";
 ---
 
 <style is:global>
@@ -43,35 +43,16 @@ import { PLAYER_CHAR_LIMITS } from "../config";
     }
   }
 
-  #add-player-form {
-    border-radius: 1rem;
-    width: 100%;
-    box-sizing: border-box;
-    flex-direction: row;
-    column-gap: 0.5rem;
-    flex-wrap: wrap;
+  #tally-action {
+    gap: 0.5rem;
+  }
 
-    & input,
-    & button {
-      border-radius: 0.5rem;
-      padding: 0.75rem;
-      border: 1px solid #ccc;
-    }
-
-    & button {
-      padding: 0.75rem 1rem;
-    }
-
-    & input {
-      flex-grow: 1;
-    }
-
-    & .error {
-      flex-basis: 100%;
-      flex-shrink: 0;
-      color: red;
-      text-align: left;
-    }
+  .error {
+    flex-basis: 100%;
+    flex-shrink: 0;
+    color: red;
+    text-align: left;
+    font-size: 0.9rem;
   }
 
   #next {
@@ -90,96 +71,75 @@ import { PLAYER_CHAR_LIMITS } from "../config";
     <h2 id="step-title">Step 1: Add Players</h2>
     <p id="step-instructions">Up to 10 chars, letters or numbers, no spaces</p>
   </header>
+  <section id="tally-action">
+    <AddPlayerForm classes="step-0" />
+    <div class="error hide"></div>
+  </section>
 
-  <section id="tally-main">
+  <section id="tally-display">
     <div id="players" class="hide"></div>
-    <form id="add-player-form" class="step-0" autocomplete="off">
-      <input
-        type="text"
-        id="add-player-name"
-        placeholder="Player initials"
-        pattern={`[a-zA-Z0-9]{${PLAYER_CHAR_LIMITS.min},${PLAYER_CHAR_LIMITS.max}}`}
-        maxlength={PLAYER_CHAR_LIMITS.max}
-        required
-      />
-      <button type="submit">Add Player</button>
-      <div class="error hide"></div>
-    </form>
   </section>
   <button role="button" id="next" disabled>Next step</button>
 </seven-wonders-tally>
 <script>
-  import Player from "../classes/Player";
-  import { PLAYER_LIMIT, PLAYER_COLORS, TALLY_COMPONENTS } from "../config";
+  import { PLAYER_LIMIT, TALLY_COMPONENTS } from "../config";
+  import type { AddPlayerEvent } from "../types";
 
   class SevenWondersTally extends HTMLElement {
     constructor() {
       super();
-      let players: { [key: string]: Player } = {};
       let step = 0;
-      const colors = [...PLAYER_COLORS];
+      const container = this;
       const playersDiv = this.querySelector("#players") as HTMLElement;
       const nextStepBtn = this.querySelector("#next") as HTMLButtonElement;
       const header = this.querySelector("#step-header") as HTMLElement;
-      const main = this.querySelector("#tally-main") as HTMLElement;
-
+      const error = this.querySelector(".error") as HTMLElement;
       const addPlayerForm = this.querySelector(
-        "#add-player-form",
-      ) as HTMLFormElement;
+        "add-player-form",
+      ) as HTMLElement;
+      sessionStorage.setItem("players", JSON.stringify({}));
 
       nextStepBtn.addEventListener("click", nextStep);
 
-      addPlayerForm.addEventListener("submit", function (e) {
+      window.addEventListener("error", (e) => {
         e.preventDefault();
-        const playerName = (
-          addPlayerForm.querySelector("#add-player-name") as HTMLInputElement
-        ).value;
-
-        const errEl = addPlayerForm.querySelector(".error") as HTMLSpanElement;
-        if (players[playerName]) {
-          errEl.textContent = "Player already exists!";
-          errEl.classList.remove("hide");
-          return;
-        }
-        errEl.textContent = "";
-        errEl.classList.add("hide");
-
-        createPlayer(playerName);
-
-        if (Object.keys(players).length === PLAYER_LIMIT) {
-          addPlayerForm.classList.add("hide");
-          return;
-        }
-        addPlayerForm.reset();
+        error.textContent = e.error.message;
+        error.classList.remove("hide");
       });
 
-      function createPlayer(name: string) {
-        players[name] = new Player(name);
-        const playerCard = document.createElement("div");
-        playerCard.classList.add("player-card");
-        playerCard.style.setProperty("--color", getRandomPlayerColor());
-        const playerName = document.createElement("h4");
-        playerName.classList.add("player-name");
-        playerName.textContent = name;
-        const playerScore = document.createElement("div");
-        playerScore.classList.add("player-score");
-        playerScore.textContent = "0";
-        playerCard.appendChild(playerName);
-        playerCard.appendChild(playerScore);
-        playersDiv.appendChild(playerCard);
+      // @ts-ignore
+      addPlayerForm.addEventListener(
+        "add-player",
+        function (e: AddPlayerEvent) {
+          e.preventDefault();
+          removeError();
 
-        playersDiv.classList.remove("hide");
-        if (Object.keys(players).length > 2) {
-          enableNextStep();
-        }
-      }
+          const playerCard = document.createElement("div");
+          playerCard.classList.add("player-card");
+          playerCard.style.setProperty("--color", e.detail.playerColor);
+          const playerName = document.createElement("h4");
+          playerName.classList.add("player-name");
+          playerName.textContent = e.detail.playerName;
+          const playerScore = document.createElement("div");
+          playerScore.classList.add("player-score");
+          playerScore.textContent = "0";
+          playerCard.appendChild(playerName);
+          playerCard.appendChild(playerScore);
+          playersDiv.appendChild(playerCard);
 
-      function getRandomPlayerColor() {
-        const randomIndex = Math.floor(Math.random() * colors.length);
-        const color = colors[randomIndex];
-        colors.splice(randomIndex, 1);
-        return color;
-      }
+          const players = JSON.parse(sessionStorage.getItem("players")!);
+          const numPlayers = Object.keys(players).length;
+          if (numPlayers < 2) {
+            playersDiv.classList.remove("hide");
+          }
+          if (numPlayers > 2) {
+            enableNextStep();
+          }
+          if (numPlayers === PLAYER_LIMIT) {
+            addPlayerForm.classList.add("hide");
+          }
+        },
+      );
 
       function enableNextStep() {
         nextStepBtn.removeAttribute("disabled");
@@ -199,10 +159,17 @@ import { PLAYER_CHAR_LIMITS } from "../config";
       }
 
       function removeStepItems(index: number) {
-        const stepItems = Array.from(main.querySelectorAll(`.step-${index}`));
+        const stepItems = Array.from(
+          container.querySelectorAll(`.step-${index}`),
+        );
         for (let item of stepItems) {
-          main.removeChild(item);
+          item.remove();
         }
+      }
+
+      function removeError() {
+        error.textContent = "";
+        error.classList.add("hide");
       }
     }
   }
