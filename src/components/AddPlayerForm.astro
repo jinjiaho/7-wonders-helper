@@ -41,7 +41,7 @@ const { classes } = Astro.props;
       type="text"
       id="add-player-name"
       placeholder="Player initials"
-      pattern={`[a-zA-Z0-9]{${PLAYER_CHAR_LIMITS.min},${PLAYER_CHAR_LIMITS.max}}`}
+      pattern={`[a-zA-Z]{${PLAYER_CHAR_LIMITS.min},${PLAYER_CHAR_LIMITS.max}}`}
       maxlength={PLAYER_CHAR_LIMITS.max}
       required
     />
@@ -65,6 +65,7 @@ const { classes } = Astro.props;
         ).value;
         const players = JSON.parse(sessionStorage.getItem("players")!);
 
+        form.reset();
         if (players[playerName]) {
           throw new Error("Player already exists!");
         }
@@ -79,8 +80,6 @@ const { classes } = Astro.props;
             composed: true,
           }),
         );
-
-        form.reset();
       });
 
       function getRandomPlayerColor() {

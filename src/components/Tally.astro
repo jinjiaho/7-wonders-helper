@@ -1,4 +1,5 @@
 ---
+import { PLAYER_CHAR_LIMITS } from "../config";
 import AddPlayerForm from "./AddPlayerForm.astro";
 ---
 
@@ -55,7 +56,9 @@ import AddPlayerForm from "./AddPlayerForm.astro";
 <seven-wonders-tally id="tally-component">
   <header id="step-header">
     <h2 id="step-title">Step 1: Add Players</h2>
-    <p id="step-instructions">Up to 10 chars, letters or numbers, no spaces</p>
+    <p id="step-instructions">
+      Up to {PLAYER_CHAR_LIMITS.max} chars, letters only, no spaces
+    </p>
   </header>
   <section id="tally-action">
     <AddPlayerForm classes="step-0" />
