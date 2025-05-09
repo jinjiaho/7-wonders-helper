@@ -1,16 +1,16 @@
 ---
-
+import { SCORE_SEGMENTS } from "../config";
 ---
 
-<style>
+<style define:vars={{ categories: SCORE_SEGMENTS.length }}>
   seven-wonders-scoreboard {
-    --cols: 4;
-    --rows: 2;
+    --cols: 2;
+    --rows: calc(var(--categories) + 2);
     align-self: stretch;
     display: grid;
     grid-template-columns: repeat(var(--cols), 1fr);
     grid-gap: 1px;
-    grid-template-rows: 3rem;
+    grid-template-rows: repeat(var(--rows), 3rem);
 
     & > * {
       display: flex;
@@ -21,16 +21,18 @@
       border: none;
     }
 
-    & header {
+    .categories {
+      display: grid;
+      grid-template-rows: subgrid;
+      grid-row: 2 / span var(--categories);
+      grid-column: 1;
+    }
+
+    .tally {
       display: grid;
       grid-template-columns: subgrid;
-      grid-column: 2 / span calc(var(--cols) - 1);
-      grid-row: 1 / span 1;
-      grid-gap: 1px;
-
-      & > h3 {
-        padding: 0.5rem;
-      }
+      grid-column: 2 / span var(--cols);
+      grid-row: var(--rows);
     }
 
     & form {
@@ -43,17 +45,19 @@
 
     & fieldset {
       display: grid;
-      grid-template-columns: subgrid;
-      grid-column: 1 / span var(--cols);
+      grid-template-rows: subgrid;
     }
   }
 </style>
 <seven-wonders-scoreboard>
-  <header></header>
+  <div class="categories">
+    {SCORE_SEGMENTS.map((s) => <div class="category">{s.name}</div>)}
+  </div>
   <form></form>
+  <div class="tally"></div>
 </seven-wonders-scoreboard>
 <script>
-  import { TALLY_COMPONENTS } from "../config";
+  import { SCORE_SEGMENTS } from "../config";
 
   class Scoreboard extends HTMLElement {
     static observedAttributes = ["players", "step"];
@@ -90,13 +94,13 @@
       }
       if (name === "step") {
         const step = parseInt(newValue);
-        const scoreType = TALLY_COMPONENTS[step];
+        const segment = SCORE_SEGMENTS[step];
 
         this.dispatchEvent(
           new CustomEvent("next-step", {
             detail: {
-              title: scoreType.name,
-              description: scoreType.description,
+              title: segment.name,
+              description: segment.description,
             },
             bubbles: true,
             composed: true,

@@ -13,7 +13,7 @@ export const PLAYER_COLORS = [
   "#475c6c",
 ];
 
-export const TALLY_COMPONENTS: StepProps[] = [
+export const SCORE_SEGMENTS: StepProps[] = [
   {
     name: "Military Conflicts",
     key: "military",

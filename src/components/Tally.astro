@@ -105,7 +105,7 @@ import Scoreboard from "./Scoreboard.astro";
   </div>
 </seven-wonders-tally>
 <script>
-  import { PLAYER_LIMIT, TALLY_COMPONENTS } from "../config";
+  import { PLAYER_LIMIT, SCORE_SEGMENTS } from "../config";
   import type { AddPlayerEvent, NextStepEvent } from "../types";
 
   class SevenWondersTally extends HTMLElement {
@@ -200,7 +200,7 @@ import Scoreboard from "./Scoreboard.astro";
         this.setAttribute("step", "start");
         return;
       }
-      if (step === TALLY_COMPONENTS.length - 1) {
+      if (step === SCORE_SEGMENTS.length - 1) {
         this.setAttribute("step", "end");
         (e.target as HTMLButtonElement).setAttribute("disabled", "true");
         return;
@@ -213,7 +213,7 @@ import Scoreboard from "./Scoreboard.astro";
       e.preventDefault();
       const thisStep = this.getAttribute("step")!;
       if (thisStep === "end") {
-        this.setAttribute("step", String(TALLY_COMPONENTS.length - 1));
+        this.setAttribute("step", String(SCORE_SEGMENTS.length - 1));
         (this.querySelector("#next") as HTMLButtonElement).removeAttribute(
           "disabled",
         );
@@ -240,7 +240,7 @@ import Scoreboard from "./Scoreboard.astro";
         const index = parseInt(newValue);
         if (isNaN(index)) return;
 
-        const segment = TALLY_COMPONENTS[index];
+        const segment = SCORE_SEGMENTS[index];
         titleEl.textContent = segment.name;
         instructionEl.textContent = segment.description;
       }
