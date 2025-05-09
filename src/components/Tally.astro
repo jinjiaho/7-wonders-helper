@@ -8,7 +8,6 @@ import Scoreboard from "./Scoreboard.astro";
   #tally-component {
     text-align: center;
     width: 100%;
-    row-gap: 1.5rem;
     max-width: 40rem;
 
     & header {
@@ -99,9 +98,9 @@ import Scoreboard from "./Scoreboard.astro";
   <Scoreboard />
   <div id="controls" class="stretch">
     <button role="button" id="start" disabled>Start</button>
+    <button role="button" id="sum">Moment of Truth</button>
     <button role="button" id="prev">Prev</button>
     <button role="button" id="next">Next</button>
-    <button role="button" id="sum">Moment of Truth</button>
   </div>
 </seven-wonders-tally>
 <script>
@@ -186,34 +185,31 @@ import Scoreboard from "./Scoreboard.astro";
 
     handleStartClick(e: Event) {
       e.preventDefault;
-      this.setAttribute("step", "0");
-      const scoreboard = this.querySelector(
-        "seven-wonders-scoreboard",
-      ) as HTMLElement;
-      scoreboard.setAttribute("step", "0");
+      this.setStep("0");
     }
 
     handleNextClick(e: Event) {
       e.preventDefault();
       const step = parseInt(this.getAttribute("step")!);
       if (isNaN(step)) {
-        this.setAttribute("step", "start");
+        this.setStep("start");
         return;
       }
       if (step === SCORE_SEGMENTS.length - 1) {
-        this.setAttribute("step", "end");
+        this.setStep("end");
         (e.target as HTMLButtonElement).setAttribute("disabled", "true");
         return;
       }
-
-      this.setAttribute("step", String(step + 1));
+      const nextStep = String(step + 1);
+      this.setStep(nextStep);
     }
 
     handlePrevClick(e: Event) {
       e.preventDefault();
       const thisStep = this.getAttribute("step")!;
       if (thisStep === "end") {
-        this.setAttribute("step", String(SCORE_SEGMENTS.length - 1));
+        const lastStep = String(SCORE_SEGMENTS.length - 1);
+        this.setStep(lastStep);
         (this.querySelector("#next") as HTMLButtonElement).removeAttribute(
           "disabled",
         );
@@ -221,14 +217,23 @@ import Scoreboard from "./Scoreboard.astro";
       }
       const step = parseInt(this.getAttribute("step")!);
       if (step === 0 || isNaN(step)) {
-        this.setAttribute("step", "start");
+        this.setStep("start");
         return;
       }
-      this.setAttribute("step", String(step - 1));
+      const prevStep = String(step - 1);
+      this.setStep(prevStep);
     }
 
     handleSumClick() {
       console.log("TODO: MOMENT OF TRUTH");
+    }
+
+    setStep(step: string) {
+      this.setAttribute("step", step);
+      const scoreboard = this.querySelector(
+        "seven-wonders-scoreboard",
+      ) as HTMLElement;
+      scoreboard.setAttribute("step", step);
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {

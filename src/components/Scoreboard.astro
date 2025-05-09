@@ -64,7 +64,6 @@ import { SCORE_SEGMENTS } from "../config";
 
     connectedCallback() {
       this.setAttribute("players", "");
-      this.setAttribute("step", "init");
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -86,6 +85,9 @@ import { SCORE_SEGMENTS } from "../config";
       }
       if (name === "step") {
         const step = parseInt(newValue);
+        if (isNaN(step)) {
+          return;
+        }
         const segment = SCORE_SEGMENTS[step];
       }
 
