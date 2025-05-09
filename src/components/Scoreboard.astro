@@ -81,9 +81,8 @@ import { SCORE_SEGMENTS } from "../config";
           this.style.setProperty("--cols", String(players.length + 1));
         }
         const player = players[players.length - 1] as string;
-        createPlayer({
+        this.createPlayer({
           playerName: player,
-          container: this,
           numPlayers: players.length,
         });
         return;
@@ -96,23 +95,21 @@ import { SCORE_SEGMENTS } from "../config";
         const segment = SCORE_SEGMENTS[step];
         this.addStep(segment.key);
       }
+    }
 
-      function createPlayer({
-        playerName,
-        container,
-        numPlayers,
-      }: {
-        playerName: string;
-        container: HTMLElement;
-        numPlayers: number;
-      }) {
-        const header = container.querySelector("thead > tr") as HTMLElement;
-        const player = document.createElement("th") as HTMLElement;
-        player.textContent = playerName;
-        player.classList.add("player");
-        header.appendChild(player);
-        container.style.setProperty("--players", String(numPlayers));
-      }
+    createPlayer({
+      playerName,
+      numPlayers,
+    }: {
+      playerName: string;
+      numPlayers: number;
+    }) {
+      const header = this.querySelector("thead > tr") as HTMLElement;
+      const player = document.createElement("th") as HTMLElement;
+      player.textContent = playerName;
+      player.classList.add("player");
+      header.appendChild(player);
+      this.style.setProperty("--players", String(numPlayers));
     }
 
     addStep(key: keyof VPComponents) {
@@ -129,7 +126,6 @@ import { SCORE_SEGMENTS } from "../config";
       const firstInput = tr.querySelector(
         "input:first-child",
       ) as HTMLInputElement;
-      // firstInput.focus();
       firstInput.select();
     }
 
