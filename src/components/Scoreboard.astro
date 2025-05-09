@@ -20,10 +20,11 @@ import { SCORE_SEGMENTS } from "../config";
 
     & input {
       min-width: unset;
-      max-width: 2rem;
+      width: 100%;
       padding: 0.5rem 0.25rem;
       border: none;
-      width: 100%;
+      outline: none;
+      text-align: center;
     }
   }
 </style>
@@ -37,7 +38,7 @@ import { SCORE_SEGMENTS } from "../config";
     <tbody>
       {
         SCORE_SEGMENTS.map((s) => (
-          <tr class="category">
+          <tr class="category" data-segment={s.key}>
             <td>
               <img src={s.imgPath} alt={s.name} width="40" height="40" />
             </td>
@@ -54,6 +55,7 @@ import { SCORE_SEGMENTS } from "../config";
 </seven-wonders-scoreboard>
 <script>
   import { SCORE_SEGMENTS } from "../config";
+  import type { VPComponents } from "../types";
 
   class Scoreboard extends HTMLElement {
     static observedAttributes = ["players", "step"];
@@ -67,6 +69,7 @@ import { SCORE_SEGMENTS } from "../config";
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+      console.log(`${name} changed from ${oldValue} to ${newValue}`);
       if (name === "players") {
         const players = newValue.split(",").filter((n) => n);
         if (players.length === 0) {
@@ -89,6 +92,7 @@ import { SCORE_SEGMENTS } from "../config";
           return;
         }
         const segment = SCORE_SEGMENTS[step];
+        this.addStep(segment.key);
       }
 
       function createPlayer({
@@ -107,20 +111,44 @@ import { SCORE_SEGMENTS } from "../config";
         header.appendChild(player);
         container.style.setProperty("--players", String(numPlayers));
       }
+    }
 
-      function createInput(key: string) {
-        const label = document.createElement("label");
-        const input = document.createElement("input");
-        input.setAttribute("type", "number");
-        input.setAttribute("step", "1");
-        input.setAttribute("min", "0");
-        input.setAttribute("value", "0");
-        input.setAttribute("name", key);
-        label.appendChild(input);
-
-        input.addEventListener("change", function (e) {});
-        return label;
+    addStep(key: keyof VPComponents) {
+      const tr = this.querySelector(
+        `tbody tr[data-segment=${key}]`,
+      ) as HTMLElement;
+      const players = this.getPlayers();
+      for (let i = 0; i < players.length; i++) {
+        const td = document.createElement("td");
+        const input = this.createInput(key, players[i]);
+        td.appendChild(input);
+        tr.appendChild(td);
       }
+      const firstInput = tr.querySelector(
+        "input:first-child",
+      ) as HTMLInputElement;
+      // firstInput.focus();
+      firstInput.select();
+    }
+
+    createInput(key: string, player: string) {
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.setAttribute("type", "number");
+      input.setAttribute("step", "1");
+      input.setAttribute("min", "0");
+      input.setAttribute("value", "0");
+      input.setAttribute("name", `${player}-${key}`);
+      label.appendChild(input);
+      return label;
+    }
+
+    getPlayers() {
+      const playersRaw = this.getAttribute("players");
+      if (!playersRaw) {
+        return [];
+      }
+      return playersRaw.split(",").filter((p) => p);
     }
   }
   customElements.define("seven-wonders-scoreboard", Scoreboard);
