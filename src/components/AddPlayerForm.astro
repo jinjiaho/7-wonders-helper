@@ -65,20 +65,13 @@ import { PLAYER_CHAR_LIMITS } from "../config";
 
         form.dispatchEvent(
           new CustomEvent("add-player", {
-            detail: { playerName, playerColor: getRandomPlayerColor() },
+            detail: { playerName },
             bubbles: true,
             composed: true,
           }),
         );
         form.reset();
       });
-
-      function getRandomPlayerColor() {
-        const randomIndex = Math.floor(Math.random() * colors.length);
-        const color = colors[randomIndex];
-        colors.splice(randomIndex, 1);
-        return color;
-      }
     }
   }
   customElements.define("add-player-form", AddPlayerForm);

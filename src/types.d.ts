@@ -19,7 +19,6 @@ export type StepProps = {
 export interface AddPlayerEvent extends Event {
   detail: {
     playerName: string;
-    playerColor: string;
   };
 }
 
