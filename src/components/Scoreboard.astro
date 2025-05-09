@@ -1,0 +1,115 @@
+---
+
+---
+
+<style>
+  seven-wonders-scoreboard {
+    --cols: 4;
+    --rows: 2;
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    grid-gap: 1px;
+    grid-template-rows: 3rem;
+
+    & > * {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: 0.25rem;
+      border: none;
+    }
+
+    & header {
+      display: grid;
+      grid-template-columns: subgrid;
+      grid-column: 2 / span calc(var(--cols) - 1);
+      grid-row: 1 / span 1;
+      grid-gap: 1px;
+
+      & > h3 {
+        padding: 0.5rem;
+      }
+    }
+
+    & form {
+      display: grid;
+      grid-template-columns: subgrid;
+      grid-column: 1 / span var(--cols);
+      grid-row-start: 2;
+      grid-row-end: calc(var(--rows) + 1);
+    }
+
+    & fieldset {
+      display: grid;
+      grid-template-columns: subgrid;
+      grid-column: 1 / span var(--cols);
+    }
+  }
+</style>
+<seven-wonders-scoreboard>
+  <header></header>
+  <form></form>
+</seven-wonders-scoreboard>
+<script>
+  import { TALLY_COMPONENTS } from "../config";
+
+  class Scoreboard extends HTMLElement {
+    static observedAttributes = ["players", "step"];
+
+    constructor() {
+      super();
+      console.log("SCOREBOARD CONSTRUCTED");
+    }
+
+    connectedCallback() {
+      this.setAttribute("players", "");
+      this.setAttribute("step", "init");
+    }
+
+    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+      // console.log(
+      //   `Attribute ${name} changed from ${typeof oldValue} ${oldValue} to ${typeof newValue} ${newValue}.`,
+      // );
+      // console.log("attributChangeCallback this", this);
+      if (name === "players") {
+        const players = newValue.split(",").filter((n) => n);
+        if (players.length > 0) {
+          this.classList.remove("hide");
+        }
+        const header = this.querySelector("header") as HTMLElement;
+        header.innerHTML = "";
+        if (players.length > 3) {
+          this.style.setProperty("--cols", String(players.length + 1));
+        }
+        for (let player of players) {
+          const el = createPlayer(player);
+          header.appendChild(el);
+        }
+      }
+      if (name === "step") {
+        const step = parseInt(newValue);
+        const scoreType = TALLY_COMPONENTS[step];
+
+        this.dispatchEvent(
+          new CustomEvent("next-step", {
+            detail: {
+              title: scoreType.name,
+              description: scoreType.description,
+            },
+            bubbles: true,
+            composed: true,
+          }),
+        );
+      }
+
+      function createPlayer(playerName: string) {
+        const h3 = document.createElement("h3");
+        h3.textContent = playerName;
+        return h3;
+      }
+    }
+  }
+  customElements.define("seven-wonders-scoreboard", Scoreboard);
+</script>

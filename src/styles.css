@@ -1,0 +1,64 @@
+:root {
+  --dark: #353839;
+  --bg: antiquewhite;
+  --light: 247, 239, 210;
+}
+
+@font-face {
+  font-family: "Cinzel";
+  src:
+    url("/fonts/Cinzel-SemiBold.woff2") format("woff2"),
+    url("/fonts/Cinzel-SemiBold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+html {
+  height: 100%;
+  background-color: var(--bg);
+}
+body {
+  padding: 1px;
+  margin: 0.5rem;
+  font-family: system-ui;
+}
+
+body,
+body *:not(table, thead, tbody, tr, td, th, tfoot, caption, col) {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  color: var(--dark);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+th {
+  font-family: "Cinzel", system-ui;
+  font-weight: 600;
+  font-style: normal;
+  margin: 0;
+}
+
+h1 {
+  margin: 0.5rem 0;
+}
+
+.hide {
+  display: none !important;
+}
+
+.stretch {
+  align-self: stretch;
+}
+
+button:disabled {
+  opacity: 0.5;
+}

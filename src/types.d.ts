@@ -8,7 +8,7 @@ export interface VPComponents {
   purpleCards: number;
 }
 
-export type TallyProps = {
+export type StepProps = {
   name: string;
   key: keyof VPComponents;
   description: string;
@@ -19,5 +19,12 @@ export interface AddPlayerEvent extends Event {
   detail: {
     playerName: string;
     playerColor: string;
+  };
+}
+
+export interface NextStepEvent extends Event {
+  detail: {
+    title: string;
+    description: string;
   };
 }

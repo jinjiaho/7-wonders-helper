@@ -1,6 +1,7 @@
 ---
 import { PLAYER_CHAR_LIMITS } from "../config";
 import AddPlayerForm from "./AddPlayerForm.astro";
+import Scoreboard from "./Scoreboard.astro";
 ---
 
 <style is:global>
@@ -17,28 +18,41 @@ import AddPlayerForm from "./AddPlayerForm.astro";
         margin: 0;
       }
     }
+
+    & #sum {
+      display: none;
+    }
+
+    &:not([step="start"]) {
+      & #start,
+      & add-player-form {
+        display: none;
+      }
+    }
+
+    &[step="start"] {
+      & #next,
+      & #prev {
+        display: none;
+      }
+    }
+
+    &[step="end"] {
+      & #start,
+      & add-player-form {
+        display: none;
+      }
+      & #sum {
+        display: flex;
+      }
+    }
   }
 
   #tally-action {
     gap: 0.5rem;
   }
 
-  #tally-display {
-    align-self: stretch;
-  }
-
-  #score-table {
-    align-self: stretch;
-    background-color: rgba(255, 255, 255, 0.5);
-
-    & th,
-    & td {
-      border: 1px solid antiquewhite;
-      padding: 0.25rem;
-    }
-  }
-
-  .error {
+  #error {
     flex-basis: 100%;
     flex-shrink: 0;
     color: red;
@@ -46,11 +60,28 @@ import AddPlayerForm from "./AddPlayerForm.astro";
     font-size: 0.9rem;
   }
 
+  #controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 0.5rem;
+
+    & > button {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+    }
+  }
+
+  #start,
+  #sum {
+    flex-basis: 100%;
+    flex-shrink: 0;
+  }
+
+  #prev,
   #next {
-    align-self: stretch;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #ccc;
+    flex-basis: 45%;
+    flex-grow: 1;
   }
 </style>
 <seven-wonders-tally id="tally-component">
@@ -61,46 +92,39 @@ import AddPlayerForm from "./AddPlayerForm.astro";
     </p>
   </header>
   <section id="tally-action">
-    <AddPlayerForm classes="step-0" />
-    <div class="error hide"></div>
+    <AddPlayerForm classes="start" />
+    <div id="error" class="hide"></div>
   </section>
 
-  <section id="tally-display">
-    <table id="score-table" class="hide">
-      <thead>
-        <tr>
-          <td></td>
-        </tr>
-      </thead>
-    </table>
-  </section>
-  <button role="button" id="next" disabled>Next step</button>
+  <Scoreboard />
+  <div id="controls" class="stretch">
+    <button role="button" id="start" disabled>Start</button>
+    <button role="button" id="prev">Prev</button>
+    <button role="button" id="next">Next</button>
+    <button role="button" id="sum">Moment of Truth</button>
+  </div>
 </seven-wonders-tally>
 <script>
   import { PLAYER_LIMIT, TALLY_COMPONENTS } from "../config";
-  import type { AddPlayerEvent } from "../types";
+  import type { AddPlayerEvent, NextStepEvent } from "../types";
 
   class SevenWondersTally extends HTMLElement {
+    step = "start";
+    static observedAttributes = ["step"];
     constructor() {
       super();
-      let step = 0;
-      const container = this;
-      const scoreTable = this.querySelector("#score-table") as HTMLElement;
-      const nextStepBtn = this.querySelector("#next") as HTMLButtonElement;
-      const header = this.querySelector("#step-header") as HTMLElement;
-      const error = this.querySelector(".error") as HTMLElement;
+    }
+
+    connectedCallback() {
+      this.setAttribute("step", "start");
+      const startBtn = this.querySelector("#start") as HTMLButtonElement;
+      const nextBtn = this.querySelector("#next") as HTMLButtonElement;
+      const prevBtn = this.querySelector("#prev") as HTMLButtonElement;
+      const sumBtn = this.querySelector("#sum") as HTMLButtonElement;
+      const error = this.querySelector("#error") as HTMLElement;
       const addPlayerForm = this.querySelector(
         "add-player-form",
       ) as HTMLElement;
-      sessionStorage.setItem("players", JSON.stringify({}));
-
-      nextStepBtn.addEventListener("click", nextStep);
-
-      window.addEventListener("error", (e) => {
-        e.preventDefault();
-        error.textContent = e.error.message;
-        error.classList.remove("hide");
-      });
 
       // @ts-ignore
       addPlayerForm.addEventListener(
@@ -109,15 +133,9 @@ import AddPlayerForm from "./AddPlayerForm.astro";
           e.preventDefault();
           removeError();
 
-          addPlayerName(e.detail.playerName);
-
-          const players = JSON.parse(sessionStorage.getItem("players")!);
-          const numPlayers = Object.keys(players).length;
-          if (numPlayers < 2) {
-            scoreTable.classList.remove("hide");
-          }
+          const numPlayers = addPlayer(e.detail.playerName);
           if (numPlayers > 2) {
-            enableNextStep();
+            startBtn.removeAttribute("disabled");
           }
           if (numPlayers === PLAYER_LIMIT) {
             addPlayerForm.classList.add("hide");
@@ -125,44 +143,106 @@ import AddPlayerForm from "./AddPlayerForm.astro";
         },
       );
 
-      function addPlayerName(name: string) {
-        const thead = container.querySelector(
-          "#score-table thead tr",
+      window.addEventListener("error", this.handleError.bind(this));
+
+      startBtn.addEventListener("click", this.handleStartClick.bind(this));
+
+      nextBtn.addEventListener("click", this.handleNextClick.bind(this));
+
+      prevBtn.addEventListener("click", this.handlePrevClick.bind(this));
+
+      sumBtn.addEventListener("click", this.handleSumClick.bind(this));
+
+      function addPlayer(name: string) {
+        const scoreboard = document.querySelector(
+          "seven-wonders-scoreboard",
         ) as HTMLElement;
-        const th = document.createElement("th");
-        th.textContent = name;
-        thead.appendChild(th);
-      }
+        const players = (scoreboard.getAttribute("players") || "")
+          .split(",")
+          .filter((n) => n);
 
-      function enableNextStep() {
-        nextStepBtn.removeAttribute("disabled");
-      }
-
-      function nextStep() {
-        const tallyComp = TALLY_COMPONENTS[step];
-        const titleEl = header.querySelector("#step-title") as HTMLElement;
-        titleEl.textContent = `Step ${step + 2}: ${tallyComp.name}`;
-        const instructionEl = header.querySelector(
-          "#step-instructions",
-        ) as HTMLElement;
-        instructionEl.textContent = tallyComp.description;
-        removeStepItems(step);
-        step += 1;
-        nextStepBtn.setAttribute("disabled", "true");
-      }
-
-      function removeStepItems(index: number) {
-        const stepItems = Array.from(
-          container.querySelectorAll(`.step-${index}`),
-        );
-        for (let item of stepItems) {
-          item.remove();
+        if (players.includes(name)) {
+          throw new Error(
+            "Name already in use! Please choose a different name.",
+          );
         }
+        players.push(name);
+        scoreboard.setAttribute("players", players.join(","));
+        return players.length;
       }
 
       function removeError() {
         error.textContent = "";
         error.classList.add("hide");
+      }
+    }
+
+    handleError(e: ErrorEvent) {
+      e.preventDefault();
+      const error = this.querySelector("#error") as HTMLElement;
+      error.textContent = e.error.message;
+      error.classList.remove("hide");
+    }
+
+    handleStartClick(e: Event) {
+      e.preventDefault;
+      this.setAttribute("step", "0");
+      const scoreboard = this.querySelector(
+        "seven-wonders-scoreboard",
+      ) as HTMLElement;
+      scoreboard.setAttribute("step", "0");
+    }
+
+    handleNextClick(e: Event) {
+      e.preventDefault();
+      const step = parseInt(this.getAttribute("step")!);
+      if (isNaN(step)) {
+        this.setAttribute("step", "start");
+        return;
+      }
+      if (step === TALLY_COMPONENTS.length - 1) {
+        this.setAttribute("step", "end");
+        (e.target as HTMLButtonElement).setAttribute("disabled", "true");
+        return;
+      }
+
+      this.setAttribute("step", String(step + 1));
+    }
+
+    handlePrevClick(e: Event) {
+      e.preventDefault();
+      const thisStep = this.getAttribute("step")!;
+      if (thisStep === "end") {
+        this.setAttribute("step", String(TALLY_COMPONENTS.length - 1));
+        (this.querySelector("#next") as HTMLButtonElement).removeAttribute(
+          "disabled",
+        );
+        return;
+      }
+      const step = parseInt(this.getAttribute("step")!);
+      if (step === 0 || isNaN(step)) {
+        this.setAttribute("step", "start");
+        return;
+      }
+      this.setAttribute("step", String(step - 1));
+    }
+
+    handleSumClick() {
+      console.log("TODO: MOMENT OF TRUTH");
+    }
+
+    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+      if (name === "step") {
+        const titleEl = this.querySelector("h2") as HTMLElement;
+        const instructionEl = this.querySelector(
+          "#step-instructions",
+        ) as HTMLElement;
+        const index = parseInt(newValue);
+        if (isNaN(index)) return;
+
+        const segment = TALLY_COMPONENTS[index];
+        titleEl.textContent = segment.name;
+        instructionEl.textContent = segment.description;
       }
     }
   }

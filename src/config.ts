@@ -1,4 +1,4 @@
-import type { TallyProps } from "./types";
+import type { StepProps } from "./types";
 
 export const PLAYER_LIMIT = 7;
 export const PLAYER_CHAR_LIMITS = { min: 1, max: 2 };
@@ -13,7 +13,7 @@ export const PLAYER_COLORS = [
   "#475c6c",
 ];
 
-export const TALLY_COMPONENTS: TallyProps[] = [
+export const TALLY_COMPONENTS: StepProps[] = [
   {
     name: "Military Conflicts",
     key: "military",

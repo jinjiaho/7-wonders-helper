@@ -63,15 +63,6 @@ const { classes } = Astro.props;
         const playerName = (
           form.querySelector("#add-player-name") as HTMLInputElement
         ).value;
-        const players = JSON.parse(sessionStorage.getItem("players")!);
-
-        form.reset();
-        if (players[playerName]) {
-          throw new Error("Player already exists!");
-        }
-
-        players[playerName] = new Player(playerName);
-        sessionStorage.setItem("players", JSON.stringify(players));
 
         form.dispatchEvent(
           new CustomEvent("add-player", {
@@ -80,6 +71,7 @@ const { classes } = Astro.props;
             composed: true,
           }),
         );
+        form.reset();
       });
 
       function getRandomPlayerColor() {
