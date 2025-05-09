@@ -12,6 +12,7 @@ export type StepProps = {
   name: string;
   key: keyof VPComponents;
   description: string;
+  imgPath: string;
   note?: string;
 };
 
