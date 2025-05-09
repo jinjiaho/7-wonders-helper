@@ -37,6 +37,7 @@ import Scoreboard from "./Scoreboard.astro";
 
     &[step="end"] {
       & #start,
+      & #next,
       & add-player-form {
         display: none;
       }
@@ -58,37 +59,42 @@ import Scoreboard from "./Scoreboard.astro";
     font-size: 0.9rem;
   }
 
+  #instructions {
+    font-size: 0.8rem;
+  }
+
+  .btn-full {
+    flex-basis: 100%;
+    flex-shrink: 0;
+    padding: 0.75rem 0.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    align-self: stretch;
+  }
+
   #controls {
     flex-direction: row;
     flex-wrap: wrap;
     column-gap: 0.5rem;
-
-    & > button {
-      flex-basis: 100%;
-      flex-shrink: 0;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid #ccc;
-    }
   }
 </style>
 <seven-wonders-tally id="tally-component">
   <header id="step-header">
     <h2 id="step-title">Step 1: Add Players</h2>
-    <p id="step-instructions">
+    <p id="instructions">
       Up to {PLAYER_CHAR_LIMITS.max} chars, letters only, no spaces
     </p>
   </header>
   <section id="tally-action">
-    <AddPlayerForm classes="start" />
+    <AddPlayerForm />
+    <button role="button" id="start" class="btn-full" disabled>Start</button>
     <div id="error" class="hide"></div>
   </section>
 
   <Scoreboard />
   <div id="controls" class="stretch">
-    <button role="button" id="start" disabled>Start</button>
-    <button role="button" id="sum">Moment of Truth</button>
-    <button role="button" id="next">Next</button>
+    <button role="button" class="btn-full" id="sum">Moment of Truth</button>
+    <button role="button" class="btn-full" id="next">Next</button>
   </div>
 </seven-wonders-tally>
 <script>
@@ -182,7 +188,6 @@ import Scoreboard from "./Scoreboard.astro";
       }
       if (step === SCORE_SEGMENTS.length - 1) {
         this.setStep("end");
-        (e.target as HTMLButtonElement).setAttribute("disabled", "true");
         return;
       }
       const nextStep = String(step + 1);
@@ -205,7 +210,7 @@ import Scoreboard from "./Scoreboard.astro";
       if (name === "step") {
         const titleEl = this.querySelector("h2") as HTMLElement;
         const instructionEl = this.querySelector(
-          "#step-instructions",
+          "#instructions",
         ) as HTMLElement;
         const index = parseInt(newValue);
         if (isNaN(index)) return;
