@@ -116,11 +116,10 @@ import { SCORE_SEGMENTS } from "../config";
         tf.textContent = `${playerResult}`;
         tfoot.appendChild(tf);
       });
-      e.target.classList.add("hide");
+      (e.target as HTMLElement).classList.add("hide");
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-      console.log(`${name} changed from ${oldValue} to ${newValue}`);
       if (name === "players") {
         const players = newValue.split(",").filter((n) => n);
         if (players.length === 0) {
@@ -137,6 +136,10 @@ import { SCORE_SEGMENTS } from "../config";
         return;
       }
       if (name === "step") {
+        if (newValue === "end") {
+          (this.querySelector("#sum") as HTMLButtonElement).focus();
+          return;
+        }
         const step = parseInt(newValue);
         if (isNaN(step)) {
           return;
