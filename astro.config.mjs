@@ -5,6 +5,7 @@ import sitemap from "@astrojs/sitemap";
 export default defineConfig({
   site: "https://jinjiaho.github.io/7-wonders-helper",
   integrations: [sitemap()],
+  output: "static",
   server: {
     // headers: {
     //   "Content-Security-Policy":

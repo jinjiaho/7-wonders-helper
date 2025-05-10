@@ -1,6 +1,5 @@
 ---
 import { PLAYER_CHAR_LIMITS } from "../config";
-import AddPlayerForm from "./AddPlayerForm.astro";
 import Scoreboard from "./Scoreboard.astro";
 ---
 
@@ -20,7 +19,7 @@ import Scoreboard from "./Scoreboard.astro";
 
     &:not([step="start"]) {
       & #start,
-      & add-player-form {
+      & #add-player-form {
         display: none;
       }
     }
@@ -45,6 +44,37 @@ import Scoreboard from "./Scoreboard.astro";
 
   #tally-action {
     gap: 0.5rem;
+  }
+
+  #add-player-form {
+    border-radius: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    flex-direction: row;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+
+    & input,
+    & button {
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+    }
+
+    & button {
+      padding: 0.75rem 1rem;
+    }
+
+    & input {
+      flex-grow: 1;
+    }
+
+    & .error {
+      flex-basis: 100%;
+      flex-shrink: 0;
+      color: red;
+      text-align: left;
+    }
   }
 
   #error {
@@ -76,17 +106,25 @@ import Scoreboard from "./Scoreboard.astro";
     </p>
   </header>
   <section id="tally-action">
-    <AddPlayerForm />
+    <form id="add-player-form" action="#" autocomplete="off">
+      <input
+        type="text"
+        id="add-player-name"
+        placeholder="Player initials"
+        pattern={`[a-zA-Z]{${PLAYER_CHAR_LIMITS.min},${PLAYER_CHAR_LIMITS.max}}`}
+        maxlength={PLAYER_CHAR_LIMITS.max}
+        required
+      />
+      <button type="submit">Add Player</button>
+    </form>
     <button role="button" id="start" class="btn-full" disabled>Start</button>
     <div id="error" class="hide"></div>
   </section>
-
   <Scoreboard />
   <button role="button" class="btn-full" id="next">Next</button>
 </seven-wonders-tally>
 <script>
   import { PLAYER_LIMIT, SCORE_SEGMENTS } from "../config";
-  import type { AddPlayerEvent, NextStepEvent } from "../types";
 
   class SevenWondersTally extends HTMLElement {
     step = "start";
@@ -99,56 +137,17 @@ import Scoreboard from "./Scoreboard.astro";
       this.setAttribute("step", "start");
       const startBtn = this.querySelector("#start") as HTMLButtonElement;
       const nextBtn = this.querySelector("#next") as HTMLButtonElement;
-      const error = this.querySelector("#error") as HTMLElement;
       const addPlayerForm = this.querySelector(
-        "add-player-form",
-      ) as HTMLElement;
+        "#add-player-form",
+      ) as HTMLFormElement;
 
-      // @ts-ignore
-      addPlayerForm.addEventListener(
-        "add-player",
-        function (e: AddPlayerEvent) {
-          e.preventDefault();
-          removeError();
-
-          const numPlayers = addPlayer(e.detail.playerName);
-          if (numPlayers > 2) {
-            startBtn.removeAttribute("disabled");
-          }
-          if (numPlayers === PLAYER_LIMIT) {
-            addPlayerForm.classList.add("hide");
-          }
-        },
-      );
+      addPlayerForm.addEventListener("submit", this.handleAddPlayer.bind(this));
 
       window.addEventListener("error", this.handleError.bind(this));
 
       startBtn.addEventListener("click", this.handleStartClick.bind(this));
 
       nextBtn.addEventListener("click", this.handleNextClick.bind(this));
-
-      function addPlayer(name: string) {
-        const scoreboard = document.querySelector(
-          "seven-wonders-scoreboard",
-        ) as HTMLElement;
-        const players = (scoreboard.getAttribute("players") || "")
-          .split(",")
-          .filter((n) => n);
-
-        if (players.includes(name)) {
-          throw new Error(
-            "Name already in use! Please choose a different name.",
-          );
-        }
-        players.push(name);
-        scoreboard.setAttribute("players", players.join(","));
-        return players.length;
-      }
-
-      function removeError() {
-        error.textContent = "";
-        error.classList.add("hide");
-      }
     }
 
     handleError(e: ErrorEvent) {
@@ -161,6 +160,7 @@ import Scoreboard from "./Scoreboard.astro";
     handleStartClick(e: Event) {
       e.preventDefault();
       this.setStep("0");
+      this.removeError();
     }
 
     handleNextClick(e: Event) {
@@ -176,6 +176,41 @@ import Scoreboard from "./Scoreboard.astro";
       }
       const nextStep = String(step + 1);
       this.setStep(nextStep);
+    }
+
+    removeError() {
+      const error = this.querySelector("#error") as HTMLElement;
+      error.textContent = "";
+      error.classList.add("hide");
+    }
+
+    handleAddPlayer(e: SubmitEvent) {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const playerName = (
+        form.querySelector("#add-player-name") as HTMLInputElement
+      ).value;
+
+      this.removeError();
+      const scoreboard = document.querySelector(
+        "seven-wonders-scoreboard",
+      ) as HTMLElement;
+      const players = (scoreboard.getAttribute("players") || "")
+        .split(",")
+        .filter((n) => n);
+
+      if (players.includes(playerName)) {
+        throw new Error("Name already in use! Please choose a different name.");
+      }
+      players.push(playerName);
+      scoreboard.setAttribute("players", players.join(","));
+      if (players.length > 2) {
+        this.querySelector("#start").removeAttribute("disabled");
+      }
+      if (players.length === PLAYER_LIMIT) {
+        form.classList.add("hide");
+      }
+      form.reset();
     }
 
     setStep(step: string) {

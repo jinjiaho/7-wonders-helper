@@ -15,16 +15,3 @@ export type StepProps = {
   imgPath: string;
   note?: string;
 };
-
-export interface AddPlayerEvent extends Event {
-  detail: {
-    playerName: string;
-  };
-}
-
-export interface NextStepEvent extends Event {
-  detail: {
-    title: string;
-    description: string;
-  };
-}
