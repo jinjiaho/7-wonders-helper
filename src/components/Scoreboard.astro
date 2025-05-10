@@ -19,6 +19,11 @@ import { SCORE_SEGMENTS } from "../config";
       text-align: center;
     }
 
+    & tfoot td {
+      height: 2rem;
+      text-align: center;
+    }
+
     & input {
       min-width: unset;
       width: 100%;
@@ -27,6 +32,17 @@ import { SCORE_SEGMENTS } from "../config";
       outline: none;
       text-align: center;
       height: 2.5rem;
+      background-color: white;
+    }
+
+    & #sum {
+      display: none;
+    }
+
+    &[step="var(--categories)"] {
+      & #sum {
+        display: flex;
+      }
     }
   }
 </style>
@@ -54,6 +70,7 @@ import { SCORE_SEGMENTS } from "../config";
       </tr>
     </tfoot>
   </table>
+  <button role="button" class="btn-full" id="sum">Moment of Truth</button>
 </seven-wonders-scoreboard>
 <script>
   import { SCORE_SEGMENTS } from "../config";
@@ -68,6 +85,25 @@ import { SCORE_SEGMENTS } from "../config";
 
     connectedCallback() {
       this.setAttribute("players", "");
+      const sumBtn = this.querySelector("#sum") as HTMLButtonElement;
+      sumBtn.addEventListener("click", this.handleSumClick.bind(this));
+    }
+
+    handleSumClick(e: Event) {
+      const table = this.querySelector("table") as HTMLTableElement;
+      const players = this.getPlayers();
+      players.forEach((p, i) => {
+        const inputs = Array.from(
+          table.querySelectorAll(`input[player=${p}`),
+        ) as HTMLInputElement[];
+        const playerResult = inputs.reduce((sum, a) => {
+          return sum + parseInt(a.value);
+        }, 0);
+        const tfoot = table.querySelector("tfoot tr") as HTMLElement;
+        const tf = document.createElement("td");
+        tf.textContent = `${playerResult}`;
+        tfoot.appendChild(tf);
+      });
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -119,7 +155,7 @@ import { SCORE_SEGMENTS } from "../config";
       const players = this.getPlayers();
       for (let i = 0; i < players.length; i++) {
         const td = document.createElement("td");
-        const input = this.createInput(key, players[i]);
+        const input = this.createInput(players[i]);
         td.appendChild(input);
         tr.appendChild(td);
       }
@@ -129,14 +165,14 @@ import { SCORE_SEGMENTS } from "../config";
       firstInput.select();
     }
 
-    createInput(key: string, player: string) {
+    createInput(player: string) {
       const label = document.createElement("label");
       const input = document.createElement("input");
       input.setAttribute("type", "number");
       input.setAttribute("step", "1");
       input.setAttribute("min", "0");
       input.setAttribute("value", "0");
-      input.setAttribute("name", `${player}-${key}`);
+      input.setAttribute("player", player);
       label.appendChild(input);
       return label;
     }

@@ -18,10 +18,6 @@ import Scoreboard from "./Scoreboard.astro";
       }
     }
 
-    & #sum {
-      display: none;
-    }
-
     &:not([step="start"]) {
       & #start,
       & add-player-form {
@@ -71,12 +67,6 @@ import Scoreboard from "./Scoreboard.astro";
     border: 1px solid #ccc;
     align-self: stretch;
   }
-
-  #controls {
-    flex-direction: row;
-    flex-wrap: wrap;
-    column-gap: 0.5rem;
-  }
 </style>
 <seven-wonders-tally id="tally-component">
   <header id="step-header">
@@ -92,10 +82,7 @@ import Scoreboard from "./Scoreboard.astro";
   </section>
 
   <Scoreboard />
-  <div id="controls" class="stretch">
-    <button role="button" class="btn-full" id="sum">Moment of Truth</button>
-    <button role="button" class="btn-full" id="next">Next</button>
-  </div>
+  <button role="button" class="btn-full" id="next">Next</button>
 </seven-wonders-tally>
 <script>
   import { PLAYER_LIMIT, SCORE_SEGMENTS } from "../config";
@@ -112,7 +99,6 @@ import Scoreboard from "./Scoreboard.astro";
       this.setAttribute("step", "start");
       const startBtn = this.querySelector("#start") as HTMLButtonElement;
       const nextBtn = this.querySelector("#next") as HTMLButtonElement;
-      const sumBtn = this.querySelector("#sum") as HTMLButtonElement;
       const error = this.querySelector("#error") as HTMLElement;
       const addPlayerForm = this.querySelector(
         "add-player-form",
@@ -140,8 +126,6 @@ import Scoreboard from "./Scoreboard.astro";
       startBtn.addEventListener("click", this.handleStartClick.bind(this));
 
       nextBtn.addEventListener("click", this.handleNextClick.bind(this));
-
-      sumBtn.addEventListener("click", this.handleSumClick.bind(this));
 
       function addPlayer(name: string) {
         const scoreboard = document.querySelector(
@@ -194,10 +178,6 @@ import Scoreboard from "./Scoreboard.astro";
       this.setStep(nextStep);
     }
 
-    handleSumClick() {
-      console.log("TODO: MOMENT OF TRUTH");
-    }
-
     setStep(step: string) {
       this.setAttribute("step", step);
       const scoreboard = this.querySelector(
@@ -214,7 +194,6 @@ import Scoreboard from "./Scoreboard.astro";
         ) as HTMLElement;
         const index = parseInt(newValue);
         if (isNaN(index)) return;
-
         const segment = SCORE_SEGMENTS[index];
         titleEl.textContent = segment.name;
         instructionEl.textContent = segment.description;
